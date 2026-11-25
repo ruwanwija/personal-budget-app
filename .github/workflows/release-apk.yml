@@ -41,16 +41,30 @@ jobs:
           flutter test --no-pub
 
       - name: Decode Android release keystore (if configured in secrets)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
         shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
-          cat <<EOF > android/key.properties
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > android/upload-keystore.jks
+            cat <<EOF > android/key.properties
+          storePassword=${KEYSTORE_PASSWORD}
+          keyPassword=${KEY_PASSWORD}
+          keyAlias=${KEY_ALIAS}
           storeFile=upload-keystore.jks
           EOF
+            echo "Configured Android release keystore from secrets."
+          else
+            echo "No release keystore secret configured; falling back to debug signing."
+          fi
+
+      - name: Accept Android SDK licenses
+        shell: bash
+        run: |
+          yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
 
       - name: Compute version and build release APK
         id: version
