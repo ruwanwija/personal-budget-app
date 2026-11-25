@@ -97,10 +97,10 @@ class ReportExportService {
     required CurrencyFormatStyle currencyFormat,
   }) async {
     final doc = pw.Document();
-    final headerColor = PdfColor.fromHex('#1B3B36');
+    final headerColor = PdfColor.fromHex('#0F3D7A');
     final greenColor = PdfColor.fromHex('#15803D');
     final redColor = PdfColor.fromHex('#DC2626');
-    final lightBg = PdfColor.fromHex('#F4F7F6');
+    final lightBg = PdfColor.fromHex('#F3F6FB');
 
     String money(double v, {bool showPlus = false}) => CurrencyFormatter.format(
           v,
@@ -156,7 +156,7 @@ class ReportExportService {
                     pw.Text(
                       'PERSONAL FINANCIAL MANAGEMENT',
                       style: pw.TextStyle(
-                        color: PdfColors.teal100,
+                        color: PdfColors.blue100,
                         fontSize: 9,
                         fontWeight: pw.FontWeight.bold,
                       ),
@@ -186,7 +186,7 @@ class ReportExportService {
                     pw.Text(
                       'TOTAL INCOME',
                       style: const pw.TextStyle(
-                        color: PdfColors.teal100,
+                        color: PdfColors.blue100,
                         fontSize: 9,
                       ),
                     ),

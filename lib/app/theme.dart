@@ -1,9 +1,14 @@
 import 'package:material_ui/material_ui.dart';
 
 class AppColors {
-  static const Color brandDeepGreen = Color(0xFF1B3B36);
-  static const Color brandTeal = Color(0xFF2A6F68);
-  static const Color brandMint = Color(0xFFDCF2EC);
+  static const Color brandPrimary = Color(0xFF0F3D7A);
+  static const Color brandSecondary = Color(0xFF1E64C8);
+  static const Color brandTint = Color(0xFFDBEAFE);
+
+  // Aliases kept for screen compatibility (mapped to Blue theme palette)
+  static const Color brandDeepGreen = brandPrimary;
+  static const Color brandTeal = brandSecondary;
+  static const Color brandMint = brandTint;
 
   static const Color positiveGreen = Color(0xFF15803D);
   static const Color positiveBgLight = Color(0xFFDCFCE7);
@@ -21,18 +26,18 @@ class AppColors {
 class AppTheme {
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.brandDeepGreen,
-      primary: AppColors.brandDeepGreen,
-      secondary: AppColors.brandTeal,
+      seedColor: AppColors.brandPrimary,
+      primary: AppColors.brandPrimary,
+      secondary: AppColors.brandSecondary,
       brightness: Brightness.light,
-      surface: const Color(0xFFF7F9F8),
+      surface: const Color(0xFFF8FAFC),
     );
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: const Color(0xFFF4F7F6),
+      scaffoldBackgroundColor: const Color(0xFFF3F6FB),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.brandDeepGreen,
+        backgroundColor: AppColors.brandPrimary,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
