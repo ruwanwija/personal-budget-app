@@ -1,0 +1,81 @@
+name: Build & Publish Android APK Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate Drift database code
+        run: dart run build_runner build
+
+      - name: Analyze & run tests
+        run: |
+          flutter analyze --no-fatal-warnings --no-fatal-infos --no-pub
+          flutter test --no-pub
+
+      - name: Decode Android release keystore (if configured in secrets)
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        shell: bash
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
+          cat <<EOF > android/key.properties
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Compute version and build release APK
+        id: version
+        shell: bash
+        run: |
+          RAW_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          BASE_VERSION="${RAW_VERSION%%+*}"
+          BUILD_NUMBER="${{ github.run_number }}"
+          TAG_NAME="v${BASE_VERSION}+${BUILD_NUMBER}"
+          APK_NAME="Personal-Budget-${TAG_NAME}.apk"
+
+          echo "tag=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "apk_name=${APK_NAME}" >> "$GITHUB_OUTPUT"
+
+          flutter build apk --release \
+            --build-name="${BASE_VERSION}" \
+            --build-number="${BUILD_NUMBER}" \
+            --dart-define="GITHUB_REPO=${{ github.repository }}"
+
+          cp build/app/outputs/flutter-apk/app-release.apk "${APK_NAME}"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Personal Budget ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          files: ${{ steps.version.outputs.apk_name }}
